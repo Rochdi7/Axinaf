@@ -6,6 +6,12 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+
+    public function index()
+    {
+        // Replace 'frontoffice.home' with the actual view you want to load
+        return view('index');
+    }
     public function pageView($routeName, $page = null)
     {
         // Construct the view name based on the provided routeName and optional page parameter

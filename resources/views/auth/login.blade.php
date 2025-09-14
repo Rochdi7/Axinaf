@@ -9,8 +9,7 @@
                 <div class="text-center">
                     <img src="{{ URL::asset('build/images/authentication/img-auth-login.png') }}" alt="images" class="img-fluid mb-3">
                     <h4 class="f-w-500 mb-1">Login with your email</h4>
-                    <p class="mb-3">Don't have an Account? <a href="{{ route('register') }}"
-                            class="link-primary ms-1">Create Account</a></p>
+                    
                 </div>
                 <form method="POST" action="{{ route('login') }}">
                     @csrf

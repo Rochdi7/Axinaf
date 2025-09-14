@@ -1,31 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
+use Illuminate\Support\Facades\Auth;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+// Public site
+require __DIR__.'/frontoffice.php';
 
+// Admin dashboard
+require __DIR__.'/backoffice.php';
 
-Auth::routes();
+// 🔐 Auth routes
+Auth::routes(['register' => false]); // Supprime cette option si tu veux autoriser l'inscription
 
-
-// Define a group of routes with 'auth' middleware applied
-Route::middleware(['auth'])->group(function () {
-    // Define a GET route for the root URL ('/')
-    Route::get('/', function () {
-        // Return a view named 'index' when accessing the root URL
-        return view('index');
-    });
-
-    // Define a GET route with dynamic placeholders for route parameters
-    Route::get('{routeName}/{name?}', [HomeController::class, 'pageView']);
-});
+// (Optionnel) page d’accueil après login
+Route::get('/home', function () {
+    return view('backoffice.dashboard'); // ou ce que tu veux afficher après login
+})->middleware('auth')->name('home');

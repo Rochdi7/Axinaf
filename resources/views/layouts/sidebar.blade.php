@@ -32,10 +32,15 @@
                         <div class="dropdown">
                             <a href="#" class="arrow-none dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false" data-bs-offset="0,20">
+                                @php
+                                    use Illuminate\Support\Facades\Auth;
+                                    $user = Auth::user();
+                                @endphp
+
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1 me-2">
-                                        <h6 class="mb-0">Jonh Smith</h6>
-                                        <small>Administrator</small>
+                                        <h6 class="mb-0">{{ $user->name ?? 'Utilisateur' }}</h6>
+                                        <small>{{ ucfirst($user->getRoleNames()->first() ?? 'Rôle inconnu') }}</small>
                                     </div>
                                     <div class="flex-shrink-0">
                                         <div class="btn btn-icon btn-link-secondary avtar">
@@ -43,6 +48,7 @@
                                         </div>
                                     </div>
                                 </div>
+
                             </a>
                             <div class="dropdown-menu">
                                 <ul>
@@ -50,14 +56,20 @@
                                             <i class="ph-duotone ph-user"></i>
                                             <span>My Account</span>
                                         </a></li>
-                                    
-                                    <li><a class="pc-user-links" href="{{ route('logout') }}"
-                                            onclick="event.preventDefault();
-                                              document.getElementById('logout-form').submit();">
+
+                                    <li>
+                                        <a class="pc-user-links" href="{{ route('logout') }}"
+                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                             <i class="ph-duotone ph-power"></i>
-                                            <span>Logout</span>
+                                            <span>Déconnexion</span>
                                         </a>
+
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                            style="display: none;">
+                                            @csrf
+                                        </form>
                                     </li>
+
                                 </ul>
                             </div>
                         </div>
