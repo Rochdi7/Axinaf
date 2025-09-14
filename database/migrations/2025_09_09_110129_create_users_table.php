@@ -15,18 +15,28 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
+            // Basic info
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+
+            // Auth
             $table->string('password');
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();
+
             $table->timestamps();
+            $table->softDeletes();
         });
 
+        // Default admin user
         User::create([
             'name' => 'Admin',
             'email' => 'admin@phoenixcoded.com',
-            'password' => Hash::make(12345678),
+            'password' => Hash::make('12345678'), // 🔑 hashed password
+            'is_active' => true,
         ]);
     }
 

@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('companies', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        Schema::create('sous_familles', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('famille_id')->constrained('familles')->onDelete('cascade');
+    $table->string('title');
+    $table->text('description')->nullable();
+    $table->timestamps();
+});
+
     }
 
     /**
@@ -22,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('companies');
+        Schema::dropIfExists('sous_familles');
     }
 };
