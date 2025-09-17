@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('checklists', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-    $table->text('description')->nullable();
-    $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-    $table->boolean('is_active')->default(true);
-    $table->timestamps();
-});
-
+            $table->id();
+            $table->foreignId('domain_id')->constrained('domains')->onDelete('cascade');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
     }
 
     /**
