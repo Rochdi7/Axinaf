@@ -8,10 +8,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes, InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -22,8 +26,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'company_id', // optional, keep if multi-company
-        'site_id',    // optional
+        'company_id',
+        'site_id',
         'is_active',
     ];
 
@@ -50,10 +54,34 @@ class User extends Authenticatable
     ];
 
     /**
-     * Relationships
+     * A user belongs to a company.
      */
-    public function qcmAttempts()
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * A user can belong to a site (optional).
+     */
+    public function site(): BelongsTo
+    {
+        return $this->belongsTo(Site::class);
+    }
+
+    /**
+     * User QCM attempts.
+     */
+    public function qcmAttempts(): HasMany
     {
         return $this->hasMany(UserQcmAttempt::class);
+    }
+
+    /**
+     * Optional: register media collections for user (avatar, documents, etc.)
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatar')->singleFile();
     }
 }
