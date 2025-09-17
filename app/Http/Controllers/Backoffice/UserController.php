@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Backoffice;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\Company;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +16,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $query = User::query()->with('roles');
+        $query = User::with('roles', 'company');
 
         if (!auth()->user()->hasRole('superadmin')) {
             $query->where('company_id', auth()->user()->company_id);
@@ -42,22 +41,33 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created user in storage.
+     * Store a newly created user.
      */
-    public function store(StoreUserRequest $request)
+    public function store(UserRequest $request)
     {
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
 
+        // Non-superadmins cannot choose company, default to their own
         if (!auth()->user()->hasRole('superadmin')) {
             $data['company_id'] = auth()->user()->company_id;
         }
 
         $user = User::create($data);
-        $user->assignRole($data['role']);
+
+        // Assign role
+        if (auth()->user()->hasRole('superadmin')) {
+            // Superadmin can assign any role from form
+            if (!empty($data['role']) && Role::where('name', $data['role'])->exists()) {
+                $user->assignRole($data['role']);
+            }
+        } else {
+            // Non-superadmins can only create 'client' users
+            $user->assignRole('client');
+        }
 
         return redirect()->route('backoffice.users.index')
-                         ->with('success', 'Utilisateur créé avec succès.');
+                         ->with('success', 'User created successfully.');
     }
 
     /**
@@ -68,19 +78,17 @@ class UserController extends Controller
         $this->authorizeAccess($user);
 
         $roles = Role::pluck('name', 'name');
-        $companies = [];
-
-        if (auth()->user()->hasRole('superadmin')) {
-            $companies = Company::pluck('name', 'id');
-        }
+        $companies = auth()->user()->hasRole('superadmin')
+            ? Company::pluck('name', 'id')
+            : [];
 
         return view('backoffice.users.edit', compact('user', 'roles', 'companies'));
     }
 
     /**
-     * Update the specified user in storage.
+     * Update the specified user.
      */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UserRequest $request, User $user)
     {
         $this->authorizeAccess($user);
 
@@ -92,19 +100,24 @@ class UserController extends Controller
             unset($data['password']);
         }
 
+        // Only superadmin can change company
         if (!auth()->user()->hasRole('superadmin')) {
             unset($data['company_id']);
         }
 
         $user->update($data);
-        $user->syncRoles([$data['role']]);
+
+        // Update roles
+        if (auth()->user()->hasRole('superadmin') && !empty($data['role']) && Role::where('name', $data['role'])->exists()) {
+            $user->syncRoles([$data['role']]);
+        }
 
         return redirect()->route('backoffice.users.index')
-                         ->with('success', 'Utilisateur mis à jour avec succès.');
+                         ->with('success', 'User updated successfully.');
     }
 
     /**
-     * Remove the specified user from storage.
+     * Remove the specified user.
      */
     public function destroy(User $user)
     {
@@ -113,11 +126,11 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('backoffice.users.index')
-                         ->with('success', 'Utilisateur supprimé.');
+                         ->with('success', 'User deleted successfully.');
     }
 
     /**
-     * Prevent access to users from other companies (for non-superadmins).
+     * Restrict access to users from other companies (non-superadmins).
      */
     protected function authorizeAccess(User $user)
     {
@@ -125,10 +138,6 @@ class UserController extends Controller
             return;
         }
 
-        abort_if(
-            $user->company_id !== auth()->user()->company_id,
-            403,
-            'Accès non autorisé.'
-        );
+        abort_if($user->company_id !== auth()->user()->company_id, 403, 'Unauthorized access.');
     }
 }
