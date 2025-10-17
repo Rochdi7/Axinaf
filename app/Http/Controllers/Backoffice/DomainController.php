@@ -53,7 +53,7 @@ class DomainController extends Controller
             $domain->companies()->sync($data['company_ids'] ?? []);
         });
 
-        return redirect()->route('backoffice.domains.index')
+        return redirect()->route('domains.index')
                          ->with('success', 'Le domaine a été créé avec succès.');
     }
 
